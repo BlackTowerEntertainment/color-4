@@ -10,11 +10,12 @@ MAINTAINER Alexander Dines
 
 # Copy source
 COPY ./*.js /home/server/
+#COPY ./src/ /home/server/
 COPY ./*.json /home/server/
 #Copy Client
 COPY public/**/* /home/server/
 #Install npm
-RUN cd /home/server/; npm install
+#RUN cd /home/server/; npm install
 #Run the server
 
 EXPOSE 80

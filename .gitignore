@@ -16,3 +16,6 @@
 /client/libpeerconnection.log
 /client/pm-debug.log
 /client/testem.log
+
+# intellij
+.idea/

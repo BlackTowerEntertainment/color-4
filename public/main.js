@@ -202,8 +202,8 @@ function init() {
     scene.add( light );
 
     // Block Grid
-    blockWidth = 10;
-    blockHeight = 10;
+    blockWidth = 6;
+    blockHeight = 6;
     var blockSizeRatio = .8;
     var blockSize = tileSpacing * blockSizeRatio;
 

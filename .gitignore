@@ -1,2 +1,18 @@
-node_modules/
-.git/
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# compiled output
+/client/dist
+/client/tmp
+
+# dependencies
+/client/node_modules
+/client/bower_components
+
+/node_modules
+# misc
+/client/.sass-cache
+/client/connect.lock
+/client/coverage/*
+/client/libpeerconnection.log
+/client/pm-debug.log
+/client/testem.log

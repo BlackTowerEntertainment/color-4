@@ -31,15 +31,14 @@ ColorBoard.prototype =
 {
     constructor : ColorBoard,
 
-    GiveRandomBlock : function()
+    GiveRandomTile : function()
     {
         return Math.floor(Math.random() * this.colors.totalKinds);
     },
 
     GiveRandomUsableTile : function()
     {
-        var index = Math.floor(Math.random() * (this.colors.totalKinds-1))+1;
-        return index;
+        return Math.floor(Math.random() * (this.colors.totalKinds-1))+1;
     },
 
     GetWidth : function()
@@ -60,7 +59,7 @@ ColorBoard.prototype =
                 this.tiles[row] = [];
             for(var col = 0; col < this.GetWidth(); ++col)
             {
-                this.tiles[row][col] = 0;
+                this.tiles[row][col] = this.GiveRandomTile();
             }
         }
     },

@@ -4,7 +4,7 @@
   "description": "Tag server humans vs zombies",
   "main": "index.js",
   "scripts": {
-    "start": "node index"
+    "start": "node index.js"
   },
   "author": "Alexander Dines",
   "license": "ISC",

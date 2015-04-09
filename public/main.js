@@ -14,7 +14,7 @@ var clock = new THREE.Clock();
 
 
 var blockGrid = [];
-
+var sphereGeom = new THREE.SphereGeometry(1);
 
 function UpdateCamera()
 {
@@ -47,6 +47,17 @@ var colorOfType =
         new THREE.Color("purple"),
         new THREE.Color(1,.2,0),
         null
+    ];
+var materialOfType =
+    [
+        new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, color: colorOfType[0]}),
+        new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, color: colorOfType[1]}),
+        new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, color: colorOfType[2]}),
+        new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, color: colorOfType[3]}),
+        new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, color: colorOfType[4]}),
+        new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, color: colorOfType[5]}),
+        new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, color: colorOfType[6]}),
+        new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, color: colorOfType[7]})
     ];
 
 var blockWidth = 0;
@@ -396,6 +407,26 @@ socket.on('tileset change', function(tilesetData)
 {
     tileset = tilesetData;
     SetTileSet(tileset);
+});
+
+CreateExplosion = function(tile)
+{
+    console.log(tile);
+    var star = new THREE.Mesh(sphereGeom, materialOfType[tile.type]);
+    star.scale.set(2,2,2);
+    star.position.set(tile.col * tileSpacing + tileSpacing / 2, 10, tile.row * tileSpacing + tileSpacing / 2);
+    scene.add(star);
+    new TWEEN.Tween(star.position).easing(TWEEN.Easing.Quadratic.Out).to({x:Math.random() * 200 - 100, y: Math.random()*100,z: Math.random()*200 - 100}).start();
+    new TWEEN.Tween(star.material).to({opacity : 0}).onComplete(function()
+    {
+        star.parent.remove(star);
+    }).start();
+};
+
+socket.on('blocks destroyed', function(destroyedTiles)
+{
+    for(var i = 0; i < destroyedTiles.length; ++i)
+        CreateExplosion(destroyedTiles[i]);
 });
 
 init();

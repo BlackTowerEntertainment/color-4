@@ -19,6 +19,7 @@ TilesetGame = function(http)
     //Add board listeners
     this.board.tileRemoved.add(this.OnBoardTileRemoved, this);
     this.board.tilePlaced.add(this.OnBoardTilePlaced, this);
+    this.pointsPerCompletion = 10;
 
     var giveBlocksInterval = 1000;
     //Give tiles to all player at a given interval
@@ -78,9 +79,10 @@ TilesetGame.prototype =
         {
             var tile = player.TakeTile();
             if(tile !== null) {
-                var points = this.board.PlaceTile(row, col, tile);
-                if (points > 0) {
-                    player.GivePoints(points);
+                var destroyedBlocks = this.board.PlaceTile(row, col, tile);
+                if (destroyedBlocks !== null) {
+                    player.GivePoints(destroyedBlocks.length * this.pointsPerCompletion);
+                    player.socket.emit("blocks destroyed", destroyedBlocks)
                 }
             }
             else

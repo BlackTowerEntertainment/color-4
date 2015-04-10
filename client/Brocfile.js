@@ -4,8 +4,9 @@ var EmberApp = require('ember-cli/lib/broccoli/ember-app');
 
 var app = new EmberApp();
 
-app.import('/bower_components/three.js/three.js');
-app.import('/bower_components/tween.js/build/tween.min.js');
+app.import('bower_components/sio-client/socket.io.js');
+app.import('bower_components/three.js/three.js');
+app.import('bower_components/tween.js/build/tween.min.js');
 // Use `app.import` to add additional libraries to the generated
 // output files.
 //

@@ -5,9 +5,9 @@ import Ember from 'ember';
 export default Ember.Service.extend({
     availableIn : 'controllers',
     init: function () {
-        var socket = this.socket = io();
+        console.log('hello');
+        let socket = this.socket = io(`${window.location.hostname}:80`);
         // Add a connect listener
-        debugger;
         socket.on('connect', function () {
             console.log('Client established a connection with the server.\n');
             if (playerInfo)

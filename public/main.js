@@ -448,7 +448,7 @@ function UpdateScoreBoard()
     SortScores();
     var place = GetPlace(playerID);
     var string = GetPlaceString(place-1) + "<br>";
-    string += "<span style='color:gold'>"+GetPlaceString(place)+" <-- YOU</span><br>";
+    string += "<span style='color:gold'>"+GetPlaceString(place)+"</span><br>";
     string += GetPlaceString(place+1);
     output.innerHTML = string;
 

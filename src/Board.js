@@ -159,8 +159,9 @@ ColorBoard.prototype =
     DestroyBlock : function(row, col, destroyedBlocks)
     {
         destroyedBlocks.push({row : row, col : col, type : this.tiles[row][col]});
-        this.tiles[row][col] = this.colors.none;
-        this.tileRemoved.dispatch(row, col);
+        var type = this.GiveRandomTile();
+        this.tiles[row][col] = type;
+        this.tilePlaced.dispatch(row, col, type);
     },
 
     /**

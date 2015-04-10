@@ -189,7 +189,7 @@ function init() {
 
     output = document.createElement( 'div' );
     output.innerHTML = "Score: 0";
-    output.style.cssText = 'position: absolute; left: 50px; top: 300px; font-size: 100px';
+    output.style.cssText = 'position: absolute; left: 10px; top: 10px; font-size: 20px; color :white ';
     document.body.appendChild( output );
 
     // CAMERA
@@ -260,7 +260,7 @@ function init() {
     gridHelper.position.x = width/2;
     gridHelper.position.y = 2;
     gridHelper.position.z = height/2;
-    camera.position.set( width/2, 250, height/2);
+    camera.position.set( width/2, 150, height/2);
     camera.lookAt(new THREE.Vector3( width/2, 0, height/2));
     scene.add(gridHelper);
     //  GROUND
@@ -354,6 +354,7 @@ socket.on('connect',function() {
     console.log('Client established a connection with the server.\n');
     if(playerInfo)
         window.location.reload();
+    socket.emit('register', playerName);
 });
 
 // Add a connect listener
@@ -377,6 +378,7 @@ var playerID;
 socket.on('connect info',function(data) {
     console.log('Connect Info Received ID: ', data);
     playerID = data;
+    UpdateScoreBoard();
 });
 // Add a disconnect listener
 socket.on('disconnect',function() {
@@ -390,9 +392,72 @@ socket.on('board tile removed', function(data)
     SetBlock(row, col, colors.none);
 });
 
-socket.on('score change', function(score)
+var scores = [];
+
+function ComparePlayers(a,b)
 {
-    output.innerHTML = ("Score: " + score );
+    if(a.score < b.score)
+        return 1;
+    else if(a.score == b.score)
+        return 0;
+    else
+        return -1;
+}
+
+function SortScores()
+{
+    scores.sort(ComparePlayers);
+
+}
+
+function UpdateScore(id, name, score)
+{
+    for(var i = 0; i < scores.length; ++i)
+    {
+        if(scores[i].id == id) {
+            scores[i].score = score;
+            return true;
+        }
+    }
+    scores[i] = {name:name, id : id, score:score};
+}
+
+function GetPlace(id)
+{
+    for(var i = 0; i < scores.length; ++i)
+    {
+        if(this.scores[i].id == id) {
+            return i+1;
+        }
+    }
+    return 0;
+}
+
+function GetPlaceString(place)
+{
+    var i = place - 1;
+    if(i < 0)
+        return "It's lonely on top.";
+    if(i >= this.scores.length)
+        return "";
+    return "[" + place + "]" + this.scores[i].name + " score " + this.scores[i].score;
+}
+
+function UpdateScoreBoard()
+{
+    SortScores();
+    var place = GetPlace(playerID);
+    var string = GetPlaceString(place-1) + "<br>";
+    string += "<span style='color:gold'>"+GetPlaceString(place)+" <-- YOU</span><br>";
+    string += GetPlaceString(place+1);
+    output.innerHTML = string;
+
+}
+playerName = prompt("What's your name");
+socket.on('score change', function(id, name, score)
+{
+    UpdateScore(id, name, score);
+    UpdateScoreBoard();
 });
 
 socket.on('board tile placed', function(data)
@@ -411,13 +476,13 @@ socket.on('tileset change', function(tilesetData)
 
 CreateExplosion = function(tile)
 {
-    console.log(tile);
     var star = new THREE.Mesh(sphereGeom, materialOfType[tile.type]);
     star.scale.set(2,2,2);
+    star.material.opacity = 1;
     star.position.set(tile.col * tileSpacing + tileSpacing / 2, 10, tile.row * tileSpacing + tileSpacing / 2);
     scene.add(star);
-    new TWEEN.Tween(star.position).easing(TWEEN.Easing.Quadratic.Out).to({x:Math.random() * 200 - 100, y: Math.random()*100,z: Math.random()*200 - 100}).start();
-    new TWEEN.Tween(star.material).to({opacity : 0}).onComplete(function()
+    new TWEEN.Tween(star.position).easing(TWEEN.Easing.Quadratic.Out).to({x:Math.random() * 200 - 100, y: Math.random()*100,z: Math.random()*200 - 100},500).start();
+    new TWEEN.Tween(star.material).to({opacity : 0},500).onComplete(function()
     {
         star.parent.remove(star);
     }).start();

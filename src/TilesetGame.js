@@ -10,6 +10,7 @@ TilesetGame = function(http)
     this.io = require('socket.io')(http);
     //Socket IO Events
     this.io.on('connection', this.OnConnect.bind(this));
+
     this.io.on('error', function(error)
     {
         console.error(error);
@@ -34,18 +35,30 @@ TilesetGame.prototype =
     {
         console.log('User[', socket.id,'] connected');
         socket.on('disconnect', this.OnDisconnect.bind(this, socket));
+        var self = this;
+        socket.on('register', function(name)
+        {
+            self.OnRegister(this, name)
+        });
 
+    },
+
+    OnRegister : function(socket, name)
+    {
+        for(var i = 0; i < this.players.length; ++i)
+            if(this.players[i].name == name)
+                name += "!";
         //Handle player position
         socket.on('user place block', this.OnBlockPlace.bind(this));
 
-        var name = "Bill";
         //Make a new player
-        var player = new Player(socket, name);
+        var player = new Player(this.io, socket, name);
         //Give player starting tiles
-        for(var i = 0; i < 3; i++)
+        for(var i = 0; i < 3; ++i)
             player.GiveTile(this.board.GiveRandomUsableTile());
-
         this.players.push(player);
+        for(var i = 0; i < this.players.length; ++i)
+            this.players[i].SendScore(socket);
         this.SendBoard(socket);
         //Send the player his id
         socket.emit('connect info', player.id);
@@ -105,6 +118,7 @@ TilesetGame.prototype =
         for(var i = 0; i < this.players.length; ++i)
             if(this.players[i].id == id)
                 return this.players[i];
+        return null;
     },
 
     RemovePlayer : function(id)

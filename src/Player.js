@@ -3,8 +3,9 @@
  */
 
 
-Player = function(socket, name)
+Player = function(io, socket, name)
 {
+    this.io = io;
     this.previewLength = 3;
     this.id = socket.id;
     this.socket = socket;
@@ -20,7 +21,12 @@ Player.prototype =
     GivePoints : function(points)
     {
         this.score += points;
-        this.socket.emit("score change", this.score);
+        this.SendScore(this.io);
+    },
+
+    SendScore : function(socket)
+    {
+        socket.emit("score change", this.id, this.name, this.score);
     },
 
     GiveTile : function(tile)

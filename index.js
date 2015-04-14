@@ -1,11 +1,9 @@
 /**
  * Created by Alex on 9/24/14.
  */
-//var TagServer = require('./TagServer.js');
 var express = require('express');
 var http = require('http');
-var Player = require('./src/Player.js');
-var TilesetGame = require('./src/TilesetGame.js');
+var Color4Game = require('./src/Color4Game.js');
 
 function Main()
 {
@@ -15,11 +13,12 @@ function Main()
     app.use(express.static('./public/vendor'));
     // Setup http server
     var httpServer = http.Server(app);
-    var tilesetGame = new TilesetGame(httpServer);
-    var gamePort = 80;
-    httpServer.listen(gamePort, function()
+    var color4Game = new Color4Game(httpServer);
+    var port = process.env.port || 80;
+    // Start receiving connections
+    httpServer.listen(port, function()
     {
-        console.log('Server Listening on port: ' + gamePort);
+        console.log('Server Listening on port: ' + port);
     });
 }
 

@@ -19,7 +19,6 @@ ColorBoard = function(width, height)
     };
     this.tiles = [];
     this.resolveLength = 4;
-    this.pointsPerCompletion = 10;
     this.Fill();
 
     //Signals
@@ -116,27 +115,28 @@ ColorBoard.prototype =
         {
             completions += sameKindVertical;
             completions += sameKindHorizontal;
-            this.DestroyContiguousBlocks(row, col);
+            return this.DestroyContiguousBlocks(row, col);
         }
-        return completions * this.pointsPerCompletion;
+        return null;
     },
 
     DestroyContiguousBlocks : function(row, col)
     {
+        var destroyedBlocks = [];
         var kind = this.GetKindAt(row, col);
         //Destroy starting block
-        this.DestroyBlock(row,col);
+        this.DestroyBlock(row,col, destroyedBlocks);
         var currentRow = row + 1;
         while(this.GetKindAt(currentRow, col) == kind)
         {
-            this.DestroyBlock(currentRow, col);
+            this.DestroyBlock(currentRow, col, destroyedBlocks);
             currentRow++;
         }
         //Count the tiles going down
         currentRow = row - 1;
         while(this.GetKindAt(currentRow, col) == kind)
         {
-            this.DestroyBlock(currentRow, col);
+            this.DestroyBlock(currentRow, col, destroyedBlocks);
             currentRow--;
         }
         //Go Left and right count num contig seg
@@ -144,38 +144,41 @@ ColorBoard.prototype =
         var currentCol = col - 1;
         while(this.GetKindAt(row, currentCol) == kind)
         {
-            this.DestroyBlock(row, currentCol);
+            this.DestroyBlock(row, currentCol, destroyedBlocks);
             currentCol--;
         }
         currentCol = col + 1;
         while(this.GetKindAt(row, currentCol) == kind)
         {
-            this.DestroyBlock(row, currentCol);
+            this.DestroyBlock(row, currentCol, destroyedBlocks);
             currentCol++;
         }
+        return destroyedBlocks;
     },
 
-    DestroyBlock : function(row, col)
+    DestroyBlock : function(row, col, destroyedBlocks)
     {
-        this.tiles[row][col] = this.colors.none;
-        this.tileRemoved.dispatch(row, col);
+        destroyedBlocks.push({row : row, col : col, type : this.tiles[row][col]});
+        var type = this.GiveRandomTile();
+        this.tiles[row][col] = type;
+        this.tilePlaced.dispatch(row, col, type);
     },
 
     /**
-     * places tile in the grid if it completes it will return the number of points.
+     * places tile in the grid if it completes it will return the blocks destroyed
      * @param row in the grid
      * @param col in the grid
      * @param type of tile to place
-     * @returns {number} of points gained in placement
+     * @returns {array} tiles destroyed or null
      * @constructor
      */
     PlaceTile : function(row, col, type)
     {
         this.tiles[row][col] = type;
-        var score = this.ResolveGrid(row, col);
-        if(score == 0)
+        var destroyedBlocks = this.ResolveGrid(row, col);
+        if(destroyedBlocks == null)
             this.tilePlaced.dispatch(row, col, type);
-        return score;
+        return destroyedBlocks;
     }
 };
 

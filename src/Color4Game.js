@@ -4,12 +4,14 @@
 
 var ColorBoard = require('./Board.js');
 var http = require('http');
+var Player = require('./Player.js');
 
-TilesetGame = function(http)
+Color4Game = function(http)
 {
     this.io = require('socket.io')(http);
     //Socket IO Events
     this.io.on('connection', this.OnConnect.bind(this));
+
     this.io.on('error', function(error)
     {
         console.error(error);
@@ -19,35 +21,49 @@ TilesetGame = function(http)
     //Add board listeners
     this.board.tileRemoved.add(this.OnBoardTileRemoved, this);
     this.board.tilePlaced.add(this.OnBoardTilePlaced, this);
+    this.pointsPerCompletion = 10;
 
     var giveBlocksInterval = 1000;
     //Give tiles to all player at a given interval
     setInterval(this.GiveTilesToPlayers.bind(this), giveBlocksInterval);
 };
 
-TilesetGame.prototype =
+Color4Game.prototype =
 {
-    constructor : TilesetGame,
+    constructor : Color4Game,
 
     OnConnect : function(socket)
     {
         console.log('User[', socket.id,'] connected');
         socket.on('disconnect', this.OnDisconnect.bind(this, socket));
+        var self = this;
+        socket.on('register', function(name)
+        {
+            self.OnRegister(this, name)
+        });
 
+        socket.emit('connect info', socket.id);
+    },
+
+    OnRegister : function(socket, name)
+    {
+        for(var i = 0; i < this.players.length; ++i)
+            if(this.players[i].name == name)
+                name += "!";
         //Handle player position
         socket.on('user place block', this.OnBlockPlace.bind(this));
 
-        var name = "Bill";
         //Make a new player
-        var player = new Player(socket, name);
+        var player = new Player(this.io, socket, name);
         //Give player starting tiles
-        for(var i = 0; i < 3; i++)
+        for(i = 0; i < 3; ++i)
             player.GiveTile(this.board.GiveRandomUsableTile());
-
         this.players.push(player);
+        for(i = 0; i < this.players.length; ++i)
+            this.players[i].SendScore(socket);
         this.SendBoard(socket);
         //Send the player his id
-        socket.emit('connect info', player.id);
+        socket.emit('user connect', { id : player.id, name : player.name, score : player.score});
     },
 
     OnBoardTileRemoved : function(row, col)
@@ -78,9 +94,10 @@ TilesetGame.prototype =
         {
             var tile = player.TakeTile();
             if(tile !== null) {
-                var points = this.board.PlaceTile(row, col, tile);
-                if (points > 0) {
-                    player.GivePoints(points);
+                var destroyedBlocks = this.board.PlaceTile(row, col, tile);
+                if (destroyedBlocks !== null) {
+                    player.GivePoints(destroyedBlocks.length * this.pointsPerCompletion);
+                    player.socket.emit("blocks destroyed", destroyedBlocks)
                 }
             }
             else
@@ -103,6 +120,7 @@ TilesetGame.prototype =
         for(var i = 0; i < this.players.length; ++i)
             if(this.players[i].id == id)
                 return this.players[i];
+        return null;
     },
 
     RemovePlayer : function(id)
@@ -122,4 +140,4 @@ TilesetGame.prototype =
     }
 };
 
-module.exports = TilesetGame;
+module.exports = Color4Game;

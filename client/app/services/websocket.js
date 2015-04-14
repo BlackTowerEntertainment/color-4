@@ -3,12 +3,25 @@
 import Ember from 'ember';
 
 export default Ember.Service.extend({
-  _setup: function() {
-    let socket = this.socket = io(`${window.location.hostname}:8080`);
-  }.on('init'),
+    availableIn : ['controllers','components','routes'],
+    setup : function () {
+        console.log('hello');
+        let socket = this.socket = io(`${window.location.hostname}:80`);
+        // Add a connect listener
+        socket.on('connect',function() {
+            console.log('Client established a connection with the server.\n');
+            //if(playerInfo)
+             //   window.location.reload();
+        });
+        // Add a disconnect listener
+        socket.on('disconnect', function () {
+            console.log('The server has disconnected!');
+        });
 
-  send: function(message) {
-    this.socket.emit('message', message);
-  }
+        var playerID;
+    }.on('init'),
 
+    send: function (message) {
+        this.socket.emit('message', message);
+    }
 });

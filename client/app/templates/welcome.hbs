@@ -1,1 +1,8 @@
-{{outlet}}
+<div>
+    Welcome to the game [{{name}}]
+</div>
+<div>
+<label>Name:</label>
+{{input type="text" value=name placeholder="Enter your name"}}
+    <div class="button" {{action "Start Game"}}>Start Game</div>
+</div>

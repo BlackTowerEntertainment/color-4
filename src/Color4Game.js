@@ -4,8 +4,9 @@
 
 var ColorBoard = require('./Board.js');
 var http = require('http');
+var Player = require('./Player.js');
 
-TilesetGame = function(http)
+Color4Game = function(http)
 {
     this.io = require('socket.io')(http);
     //Socket IO Events
@@ -27,9 +28,9 @@ TilesetGame = function(http)
     setInterval(this.GiveTilesToPlayers.bind(this), giveBlocksInterval);
 };
 
-TilesetGame.prototype =
+Color4Game.prototype =
 {
-    constructor : TilesetGame,
+    constructor : Color4Game,
 
     OnConnect : function(socket)
     {
@@ -41,6 +42,7 @@ TilesetGame.prototype =
             self.OnRegister(this, name)
         });
 
+        socket.emit('connect info', socket.id);
     },
 
     OnRegister : function(socket, name)
@@ -54,14 +56,14 @@ TilesetGame.prototype =
         //Make a new player
         var player = new Player(this.io, socket, name);
         //Give player starting tiles
-        for(var i = 0; i < 3; ++i)
+        for(i = 0; i < 3; ++i)
             player.GiveTile(this.board.GiveRandomUsableTile());
         this.players.push(player);
-        for(var i = 0; i < this.players.length; ++i)
+        for(i = 0; i < this.players.length; ++i)
             this.players[i].SendScore(socket);
         this.SendBoard(socket);
         //Send the player his id
-        socket.emit('connect info', player.id);
+        socket.emit('user connect', { id : player.id, name : player.name, score : player.score});
     },
 
     OnBoardTileRemoved : function(row, col)
@@ -138,4 +140,4 @@ TilesetGame.prototype =
     }
 };
 
-module.exports = TilesetGame;
+module.exports = Color4Game;

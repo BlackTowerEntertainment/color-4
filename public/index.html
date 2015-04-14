@@ -2,20 +2,22 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>Color Server</title>
+    <title>Color4 by Alexander Dines</title>
     <script src="./socket.io/socket.io.js"></script>
-
     <script src="./vendor/three.js"></script>
+    <script src="./vendor/jquery.js"></script>
+    <script src="./vendor/canvasRenderer.js"></script>
+    <script src="./vendor/projector.js"></script>
     <script src="./vendor/Tween.js"></script>
-    <script src="./vendor/MD2Character.js"></script>
-
     <style>
-        body { margin: 0; }
+        body { margin: 0;  background-color: #222222}
         canvas { width: 100%; height: 100% }
+        #container {text-align: right;}
     </style>
+    <meta name="viewport" content="width=device-width,user-scalable=yes" />
 </head>
 <body>
-
-<script src="./main.js"></script>
+    <div id="container"></div>
+    <script src="./main.js"></script>
 </body>
 </html>

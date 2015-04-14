@@ -12,6 +12,7 @@ Player = function(io, socket, name)
     this.blocks = [];
     this.score = 0;
     this.name = name;
+    this.SendScore(io);
 };
 
 Player.prototype =
@@ -48,3 +49,5 @@ Player.prototype =
         }
     }
 };
+
+module.exports = Player;

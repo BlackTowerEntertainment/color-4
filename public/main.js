@@ -1,6 +1,6 @@
 
-var SCREEN_WIDTH = window.innerWidth;
-var SCREEN_HEIGHT = window.innerHeight;
+var SCREEN_WIDTH = 460;
+var SCREEN_HEIGHT = 300;
 
 var container, camera, scene, renderer;
 
@@ -15,15 +15,6 @@ var clock = new THREE.Clock();
 
 var blockGrid = [];
 var sphereGeom = new THREE.SphereGeometry(1);
-
-function UpdateCamera()
-{
-}
-
-function Update(delta)
-{
-    UpdateCamera();
-}
 
 var preview = [];
 var colors = {
@@ -45,7 +36,7 @@ var colorOfType =
         new THREE.Color(0,0,1),
         new THREE.Color("yellow"),
         new THREE.Color("purple"),
-        new THREE.Color(1,.2,0),
+        new THREE.Color(1,.4,0),
         null
     ];
 var materialOfType =
@@ -139,11 +130,16 @@ function SetTileSet(tileset)
 
 var mouse = new THREE.Vector2();
 
-function onDocumentClick( event ) {
-    event.preventDefault();
+function onRendererClick( e ) {
+    e.preventDefault();
 
-    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    var parentOffset = $(this).offset();
+    //or $(this).offset(); if you really just want the current element's offset
+    var relX = e.pageX - parentOffset.left;
+    var relY = e.pageY - parentOffset.top;
+
+    mouse.x = ( relX / SCREEN_WIDTH ) * 2 - 1;
+    mouse.y = - ( relY / SCREEN_HEIGHT ) * 2 + 1;
     ProjectVector(mouse);
 }
 
@@ -178,38 +174,36 @@ function ProjectVector(mouse)
 }
 
 var lastPlaceTime = 0;
-var output;
+var output, playersDisplay;
+
 function init() {
 
-    container = document.createElement( 'div' );
-    document.body.appendChild( container );
+    container = document.getElementById( 'container' );
 
     document.createElement("div");
-
-
     output = document.createElement( 'div' );
-    output.innerHTML = "Score: 0";
-    output.style.cssText = 'position: absolute; left: 10px; top: 10px; font-size: 20px; color :white ';
+    output.innerHTML = "---";
+    output.style.cssText = 'position: absolute; left: 10px; top: 10px; font-size: 1em; color :white; pointer-events: none;';
     document.body.appendChild( output );
+    document.createElement("div");
+    playersDisplay = document.createElement( 'div' );
+    playersDisplay.innerHTML = "Players: --";
+    playersDisplay.style.cssText = 'position: absolute; left: 10px; bottom: 10px; font-size: 1em; color :white; pointer-events: none;';
+    document.body.appendChild( playersDisplay );
 
     // CAMERA
-
-    camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 4000 );
+    camera = new THREE.PerspectiveCamera( 45,SCREEN_WIDTH/SCREEN_HEIGHT, 1, 4000 );
     camera.up.set( 0, 0,-1);
-    // SCENE
 
+    // SCENE
     scene = new THREE.Scene();
     scene.fog = new THREE.Fog( 0x222222, 1000, 4000 );
-
     scene.add( camera );
 
     // LIGHTS
-
     scene.add( new THREE.AmbientLight( 0x222222 ) );
-
     light = new THREE.DirectionalLight( 0xffffff, 2.25 );
     light.position.set(10,100,5);
-    //light.shadowMapDebug =true;
     scene.add( light );
 
     // Block Grid
@@ -225,9 +219,10 @@ function init() {
     for(var col = 0; col < blockHeight; ++col) {
         blockGrid[col] = [];
         for (var row = 0; row < blockWidth; ++row) {
-            var material = new THREE.MeshBasicMaterial({ opacity : 0,transparent : true});
+            var material = new THREE.MeshBasicMaterial({ opacity : 0,transparent : true, overdraw : true});
             var cube = new THREE.Mesh(geometry, material);
             cube.visible = false;
+            cube.frustrumCulled = false;
             cube.position.set(row * tileSpacing + tileSpacing / 2, blockSize / 2, col * tileSpacing + tileSpacing / 2);
             cube.scale.set(blockSize,blockSize,blockSize);
             blockGrid[col][row] = { type : -1, mesh : cube};
@@ -240,7 +235,7 @@ function init() {
 
     //Block preview
     for(var i = 0; i < 3; ++i) {
-        var material = new THREE.MeshBasicMaterial({opacity: 1, color : "black", transparent: true});
+        var material = new THREE.MeshBasicMaterial({opacity: 1, color : "black", overdraw : true, transparent: true});
         var cube = new THREE.Mesh(geometry, material);
         cube.visible = true;
         cube.position.set(width + 15, 10, 20 + 12 * i);
@@ -260,8 +255,8 @@ function init() {
     gridHelper.position.x = width/2;
     gridHelper.position.y = 2;
     gridHelper.position.z = height/2;
-    camera.position.set( width/2, 150, height/2);
-    camera.lookAt(new THREE.Vector3( width/2, 0, height/2));
+    camera.position.set( width/2 + 15, 80, height/2);
+    camera.lookAt(new THREE.Vector3( width/2 + 15, 0, height/2));
     scene.add(gridHelper);
     //  GROUND
 
@@ -274,44 +269,75 @@ function init() {
     ground.position.z = height/2;
     // note that because the ground does not cast a shadow, .castShadow is left false
     ground.receiveShadow = false;
-
     scene.add( ground );
 
     // RENDERER
 
-    renderer = new THREE.WebGLRenderer( { antialias: true } );
-    renderer.setClearColor( scene.fog.color );
-    renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
+    function webglAvailable() {
+        try {
+            var canvas = document.createElement( 'canvas' );
+            return !!( window.WebGLRenderingContext && (
+            canvas.getContext( 'webgl' ) ||
+            canvas.getContext( 'experimental-webgl' ) )
+            );
+        } catch ( e ) {
+            return false;
+        }
+    }
+    if ( webglAvailable() ) {
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setClearColor( scene.fog.color );
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
+    } else {
+        renderer = new THREE.CanvasRenderer( { antialias: true } );
+        renderer.setClearColor( scene.fog.color );
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setFaceCulling (false);
+        ground.visible = false;
+        renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
+    }
     container.appendChild( renderer.domElement );
-
-    //
-
-    renderer.gammaInput = true;
-    renderer.gammaOutput = true;
-    renderer.shadowMapEnabled = false;
-
-    //renderer.shadowMapCascade = true;
-    //renderer.shadowMapType = THREE.PCFSoftShadowMap;
-    //renderer.shadowMapDebug = true;
 
     // EVENTS
 
     window.addEventListener( 'resize', onWindowResize, false );
-    document.addEventListener( 'click', onDocumentClick, false );
+    $(renderer.domElement).click( onRendererClick );
+    $("body").on('keypress', function(e) {
+        var keyCode = e.keyCode || e.which;
+        if (keyCode == 116) {
+            e.preventDefault();
+            window.showTop = !showTop;
+            UpdateScoreBoard();
+            // call custom function here
+        }
+    });
+
 
 }
 
 // EVENT HANDLERS
+limitedScore = false;
+if(window.innerHeight > window.innerWidth){
+
+    limitedScore = true;
+}
+else
+    limitedScore = false;
 
 function onWindowResize( event ) {
 
-    SCREEN_WIDTH = window.innerWidth;
-    SCREEN_HEIGHT = window.innerHeight;
-
     renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
-
-    camera.aspect = SCREEN_WIDTH/ SCREEN_HEIGHT;
+    if(window.innerHeight > window.innerWidth){
+        output.style.bottom = "35px";
+        output.style.top = "auto";
+    }
+    else {
+        output.style.top = "10px";
+        output.style.bottom = "auto";
+    }
+    UpdateScoreBoard();
+    camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
     camera.updateProjectionMatrix();
 
 }
@@ -319,7 +345,6 @@ function onWindowResize( event ) {
 function Animate() {
     var delta = clock.getDelta();
     requestAnimationFrame( Animate );
-    Update(delta);
     TWEEN.update();
     Render(delta);
 }
@@ -354,6 +379,8 @@ socket.on('connect',function() {
     console.log('Client established a connection with the server.\n');
     if(playerInfo)
         window.location.reload();
+    if(playerName.length > 12)
+        playerName = playerName.substring(0,12);
     socket.emit('register', playerName);
 });
 
@@ -399,7 +426,12 @@ function ComparePlayers(a,b)
     if(a.score < b.score)
         return 1;
     else if(a.score == b.score)
-        return 0;
+        if(a.name < b.name)
+            return 1;
+        else if(a.name == b.name)
+            return 0;
+        else
+            return -1;
     else
         return -1;
 }
@@ -420,6 +452,8 @@ function UpdateScore(id, name, score)
         }
     }
     scores[i] = {name:name, id : id, score:score};
+
+    playersDisplay.innerHTML = "Players: " + scores.length;
 }
 
 function GetPlace(id)
@@ -440,20 +474,83 @@ function GetPlaceString(place)
         return "It's lonely on top.";
     if(i >= this.scores.length)
         return "";
-    return "[" + place + "]" + this.scores[i].name + " score " + this.scores[i].score;
+    var score = this.scores[i].score + "";
+    if(this.scores[i].score < 10)
+        score = "000" + score;
+    else if(this.scores[i].score < 100)
+        score = "00" + score;
+    else if(this.scores[i].score < 1000)
+        score = "0" + score;
+    else if(this.scores[i].score < 10000)
+        score = score;
+    return "[" + place + "] <b>" + score + "</b> " + this.scores[i].name;
 }
+
+var showTop = false;
 
 function UpdateScoreBoard()
 {
     SortScores();
     var place = GetPlace(playerID);
-    var string = GetPlaceString(place-1) + "<br>";
-    string += "<span style='color:gold'>"+GetPlaceString(place)+"</span><br>";
-    string += GetPlaceString(place+1);
+    var string = "";
+
+    var numBelow = -5;
+    var numAbove = 5;
+
+    if(showTop)
+    {
+        for (var i = 1; i <= scores.length; ++i) {
+            if (i == 0)
+                string += "<span style='color:gold'>" + GetPlaceString(i) + "</span><br>";
+            else
+                string += GetPlaceString(i) + "<br>";
+
+        }
+    }
+    else {
+        for (var i = numBelow; i < numAbove; ++i) {
+            if (i + place < 1)
+                continue;
+            if (i == 0)
+                string += "<span style='color:gold'>" + GetPlaceString(i + place) + "</span><br>";
+            else
+                string += GetPlaceString(i + place) + "<br>";
+
+        }
+    }
     output.innerHTML = string;
 
 }
 playerName = prompt("What's your name");
+if(playerName == null || playerName == "")
+{
+    var randNames = ["flyingfishbrewer",
+    "apirbanker",
+    "ocelotmagician",
+    "lionplayer",
+    "shadsannouncer",
+    "cormorantknight",
+    "chillminstrel",
+    "hindsactuary",
+    "dovemidwife",
+    "partridgebricklayer",
+    "poultrycurator",
+    "aukmachinist",
+    "ruffsnurse",
+    "chamoistherapist",
+    "macawcameraman",
+    "hedgehogpilot",
+    "penguintutor",
+    "bisonworshipper",
+    "seagullsheriff",
+    "starlingaccountant",
+    "cobrabroker",
+    "shrimphunter",
+    "ptarmigandesigner",
+    "porcupinewriter",
+    "bongofarmer"];
+    playerName = randNames[Math.floor(Math.random() * randNames.length)];
+}
 socket.on('score change', function(id, name, score)
 {
     UpdateScore(id, name, score);
@@ -479,6 +576,7 @@ CreateExplosion = function(tile)
     var star = new THREE.Mesh(sphereGeom, materialOfType[tile.type]);
     star.scale.set(2,2,2);
     star.material.opacity = 1;
+    star.material.overdraw = true;
     star.position.set(tile.col * tileSpacing + tileSpacing / 2, 10, tile.row * tileSpacing + tileSpacing / 2);
     scene.add(star);
     new TWEEN.Tween(star.position).easing(TWEEN.Easing.Quadratic.Out).to({x:Math.random() * 200 - 100, y: Math.random()*100,z: Math.random()*200 - 100},500).start();

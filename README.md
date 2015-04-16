@@ -1,4 +1,6 @@
 # color-4
+Try it: http://color4.blacktowerentertainment.com/
+
 A simple example of a multiplayer server done with WS deployable with docker
 
 The game is a simple, connect four blocks of the same color

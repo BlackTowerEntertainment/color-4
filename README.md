@@ -1,7 +1,7 @@
 # color-4
 ![Screenshot of Color-4](http://blacktowerentertainment.com/wp-content/uploads/2015/04/Screen-Shot-2015-04-14-at-4.03.07-PM.png)
 
-Try it[http://color4.blacktowerentertainment.com/](http://color4.blacktowerentertainment.com/)
+Try it [http://color4.blacktowerentertainment.com/](http://color4.blacktowerentertainment.com/)
 
 A simple example of a multiplayer server done with WS deployable with docker
 

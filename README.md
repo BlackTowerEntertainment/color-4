@@ -10,6 +10,10 @@ Try and be #1 in the leaderboard.
 ## run server on port 8080
 `export port=8080 node index`
 ## Docker build
-`docker build -t color-server .`
+`docker build -t <yourname>:color-server .`
 ## Docker run (SDC-Triton) /w Public IP
-`docker run -ditP dinesalexander/color-server`
+`docker pull dinesalexander/color-server`
+`docker run -dP dinesalexander/color-server`
+
+## Docker Hub
+https://registry.hub.docker.com/u/dinesalexander/color-server/
